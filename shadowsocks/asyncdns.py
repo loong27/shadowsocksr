@@ -246,7 +246,7 @@ def parse_response(data):
 def is_valid_hostname(hostname):
     if len(hostname) > 255:
         return False
-    if hostname[-1] == b'.':
+    if hostname.endswith(b'.'):
         hostname = hostname[:-1]
     return all(VALID_HOSTNAME.match(x) for x in hostname.split(b'.'))
 
@@ -424,7 +424,7 @@ class DNSResolver(object):
         else:
             data, addr = sock.recvfrom(1024)
             if addr not in self._servers:
-                logging.warn('received a packet other than our dns')
+                logging.warning('received a packet other than our dns')
                 return
             self._handle_data(data)
 
@@ -552,4 +552,3 @@ def test():
 
 if __name__ == '__main__':
     test()
-

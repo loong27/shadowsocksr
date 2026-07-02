@@ -17,7 +17,7 @@
 from __future__ import absolute_import, division, print_function, \
     with_statement
 
-from ctypes import c_char_p, c_int, c_long, byref,\
+from ctypes import c_char_p, c_int, byref,\
     create_string_buffer, c_void_p
 
 from shadowsocks import common
@@ -39,6 +39,12 @@ def load_openssl():
                                   'libcrypto')
     if libcrypto is None:
         raise Exception('libcrypto(OpenSSL) not found')
+
+    if hasattr(libcrypto, 'OSSL_PROVIDER_load'):
+        libcrypto.OSSL_PROVIDER_load.restype = c_void_p
+        libcrypto.OSSL_PROVIDER_load.argtypes = (c_void_p, c_char_p)
+        libcrypto.OSSL_PROVIDER_load(None, b'default')
+        libcrypto.OSSL_PROVIDER_load(None, b'legacy')
 
     libcrypto.EVP_get_cipherbyname.restype = c_void_p
     libcrypto.EVP_CIPHER_CTX_new.restype = c_void_p
@@ -105,7 +111,7 @@ class OpenSSLCrypto(object):
 
     def update(self, data):
         global buf_size, buf
-        cipher_out_len = c_long(0)
+        cipher_out_len = c_int(0)
         l = len(data)
         if buf_size < l:
             buf_size = l * 2
@@ -125,6 +131,7 @@ class OpenSSLCrypto(object):
             else:
                 libcrypto.EVP_CIPHER_CTX_reset(self._ctx)
             libcrypto.EVP_CIPHER_CTX_free(self._ctx)
+            self._ctx = None
 
 
 ciphers = {

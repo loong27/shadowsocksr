@@ -31,7 +31,15 @@ from shadowsocks import common
 from shadowsocks import lru_cache
 from shadowsocks import eventloop
 import server_pool
-import Config
+from configloader import get_config
+
+
+def _manager_config():
+    config = get_config()
+    bind_ip = getattr(config, 'MANAGE_BIND_IP', '127.0.0.1')
+    port = getattr(config, 'MANAGE_PORT', 6001)
+    password = getattr(config, 'MANAGE_PASS', '')
+    return bind_ip, port, password
 
 class ServerMgr(object):
 
@@ -53,17 +61,19 @@ class ServerMgr(object):
         # TODO when dns server is IPv6
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
                                    socket.SOL_UDP)
-        self._sock.bind((Config.MANAGE_BIND_IP, Config.MANAGE_PORT))
+        bind_ip, port, _ = _manager_config()
+        self._sock.bind((bind_ip, port))
         self._sock.setblocking(False)
         loop.add(self._sock, eventloop.POLL_IN, self)
 
     def _handle_data(self, sock):
         data, addr = sock.recvfrom(128)
         #manage pwd:port:passwd:action
-        args = data.split(':')
+        args = common.to_str(data).split(':')
         if len(args) < 4:
             return
-        if args[0] == Config.MANAGE_PASS:
+        _, _, password = _manager_config()
+        if args[0] == password:
             if args[3] == '0':
                 server_pool.ServerPool.get_instance().cb_del_server(args[1])
             elif args[3] == '1':

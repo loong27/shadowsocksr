@@ -106,8 +106,10 @@ def main():
                 (protocol, password, method, obfs, obfs_param))
         if 'server_ipv6' in a_config:
             try:
-                if len(a_config['server_ipv6']) > 2 and a_config['server_ipv6'][0] == "[" and a_config['server_ipv6'][-1] == "]":
-                    a_config['server_ipv6'] = a_config['server_ipv6'][1:-1]
+                server_ipv6 = common.to_str(a_config['server_ipv6'])
+                if len(server_ipv6) > 2 and server_ipv6[0] == "[" and server_ipv6[-1] == "]":
+                    server_ipv6 = server_ipv6[1:-1]
+                a_config['server_ipv6'] = server_ipv6
                 a_config['server_port'] = int(port)
                 a_config['password'] = password
                 a_config['method'] = method
@@ -122,7 +124,7 @@ def main():
                              (a_config['server'], int(port)))
                 tcp_servers.append(tcprelay.TCPRelay(a_config, dns_resolver, False, stat_counter=stat_counter_dict))
                 udp_servers.append(udprelay.UDPRelay(a_config, dns_resolver, False, stat_counter=stat_counter_dict))
-                if a_config['server_ipv6'] == b"::":
+                if a_config['server_ipv6'] == "::":
                     ipv6_ok = True
             except Exception as e:
                 shell.print_exception(e)
@@ -148,7 +150,7 @@ def main():
 
     def run_server():
         def child_handler(signum, _):
-            logging.warn('received SIGQUIT, doing graceful shutting down..')
+            logging.warning('received SIGQUIT, doing graceful shutting down..')
             list(map(lambda s: s.close(next_tick=True),
                      tcp_servers + udp_servers))
         signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM),
@@ -205,7 +207,7 @@ def main():
                 for child in children:
                     os.waitpid(child, 0)
         else:
-            logging.warn('worker is only available on Unix/Linux')
+            logging.warning('worker is only available on Unix/Linux')
             run_server()
     else:
         run_server()

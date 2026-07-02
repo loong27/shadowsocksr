@@ -82,7 +82,7 @@ class ServerPool(object):
 		except (KeyboardInterrupt, IOError, OSError) as e:
 			logging.error(e)
 			traceback.print_exc()
-			os.exit(0)
+			sys.exit(0)
 		except Exception as e:
 			logging.error(e)
 			traceback.print_exc()
@@ -117,8 +117,10 @@ class ServerPool(object):
 			else:
 				a_config = self.config.copy()
 				a_config.update(user_config)
-				if len(a_config['server_ipv6']) > 2 and a_config['server_ipv6'][0] == "[" and a_config['server_ipv6'][-1] == "]":
-					a_config['server_ipv6'] = a_config['server_ipv6'][1:-1]
+				server_ipv6 = common.to_str(a_config['server_ipv6'])
+				if len(server_ipv6) > 2 and server_ipv6[0] == "[" and server_ipv6[-1] == "]":
+					server_ipv6 = server_ipv6[1:-1]
+				a_config['server_ipv6'] = server_ipv6
 				a_config['server'] = a_config['server_ipv6']
 				a_config['server_port'] = port
 				a_config['max_connect'] = 128
@@ -137,7 +139,7 @@ class ServerPool(object):
 					if common.to_str(a_config['server_ipv6']) == "::":
 						ipv6_ok = True
 				except Exception as e:
-					logging.warn("IPV6 %s " % (e,))
+					logging.warning("IPV6 %s " % (e,))
 
 		if 'server' in self.config:
 			if port in self.tcp_servers_pool:
@@ -162,7 +164,7 @@ class ServerPool(object):
 
 				except Exception as e:
 					if not ipv6_ok:
-						logging.warn("IPV4 %s " % (e,))
+						logging.warning("IPV4 %s " % (e,))
 
 		return True
 
@@ -171,10 +173,15 @@ class ServerPool(object):
 		logging.info("del server at %d" % port)
 		try:
 			udpsock = socket(AF_INET, SOCK_DGRAM)
-			udpsock.sendto('%s:%s:0:0' % (get_config().MANAGE_PASS, port), (get_config().MANAGE_BIND_IP, get_config().MANAGE_PORT))
+			config = get_config()
+			password = getattr(config, 'MANAGE_PASS', '')
+			bind_ip = getattr(config, 'MANAGE_BIND_IP', '127.0.0.1')
+			bind_port = getattr(config, 'MANAGE_PORT', 6001)
+			data = common.to_bytes('%s:%s:0:0' % (password, port))
+			udpsock.sendto(data, (bind_ip, bind_port))
 			udpsock.close()
 		except Exception as e:
-			logging.warn(e)
+			logging.warning(e)
 		return True
 
 	def cb_del_server(self, port):
@@ -188,12 +195,12 @@ class ServerPool(object):
 				self.tcp_servers_pool[port].close(True)
 				del self.tcp_servers_pool[port]
 			except Exception as e:
-				logging.warn(e)
+				logging.warning(e)
 			try:
 				self.udp_servers_pool[port].close(True)
 				del self.udp_servers_pool[port]
 			except Exception as e:
-				logging.warn(e)
+				logging.warning(e)
 
 		if 'server_ipv6' in self.config:
 			if port not in self.tcp_ipv6_servers_pool:
@@ -204,12 +211,12 @@ class ServerPool(object):
 					self.tcp_ipv6_servers_pool[port].close(True)
 					del self.tcp_ipv6_servers_pool[port]
 				except Exception as e:
-					logging.warn(e)
+					logging.warning(e)
 				try:
 					self.udp_ipv6_servers_pool[port].close(True)
 					del self.udp_ipv6_servers_pool[port]
 				except Exception as e:
-					logging.warn(e)
+					logging.warning(e)
 
 		return True
 
@@ -219,20 +226,20 @@ class ServerPool(object):
 			try:
 				self.tcp_servers_pool[port].update_users(users)
 			except Exception as e:
-				logging.warn(e)
+				logging.warning(e)
 			try:
 				self.udp_servers_pool[port].update_users(users)
 			except Exception as e:
-				logging.warn(e)
+				logging.warning(e)
 		if port in self.tcp_ipv6_servers_pool:
 			try:
 				self.tcp_ipv6_servers_pool[port].update_users(users)
 			except Exception as e:
-				logging.warn(e)
+				logging.warning(e)
 			try:
 				self.udp_ipv6_servers_pool[port].update_users(users)
 			except Exception as e:
-				logging.warn(e)
+				logging.warning(e)
 
 	def get_server_transfer(self, port):
 		port = int(port)
@@ -290,4 +297,3 @@ class ServerPool(object):
 			u, d = self.get_server_mu_transfer(self.udp_ipv6_servers_pool[port])
 			self.update_mu_transfer(ret, u, d)
 		return ret
-

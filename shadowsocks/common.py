@@ -146,6 +146,7 @@ ADDRTYPE_HOST = 3
 
 def pack_addr(address):
     address_str = to_str(address)
+    address = to_bytes(address)
     for family in (socket.AF_INET, socket.AF_INET6):
         try:
             r = socket.inet_pton(family, address_str)
@@ -168,7 +169,7 @@ def pre_parse_header(data):
             return None
         rand_data_size = ord(data[1])
         if rand_data_size + 2 >= len(data):
-            logging.warn('header too short, maybe wrong password or '
+            logging.warning('header too short, maybe wrong password or '
                          'encryption method')
             return None
         data = data[rand_data_size + 2:]
@@ -179,7 +180,7 @@ def pre_parse_header(data):
             return None
         rand_data_size = struct.unpack('>H', data[1:3])[0]
         if rand_data_size + 3 >= len(data):
-            logging.warn('header too short, maybe wrong password or '
+            logging.warning('header too short, maybe wrong password or '
                          'encryption method')
             return None
         data = data[rand_data_size + 3:]
@@ -191,7 +192,7 @@ def pre_parse_header(data):
         data = data[:data_size]
         crc = binascii.crc32(data) & 0xffffffff
         if crc != 0xffffffff:
-            logging.warn('uncorrect CRC32, maybe wrong password or '
+            logging.warning('uncorrect CRC32, maybe wrong password or '
                          'encryption method')
             return None
         start_pos = 3 + ord(data[3])
@@ -213,7 +214,7 @@ def parse_header(data):
             dest_port = struct.unpack('>H', data[5:7])[0]
             header_length = 7
         else:
-            logging.warn('header is too short')
+            logging.warning('header is too short')
     elif addrtype == ADDRTYPE_HOST:
         if len(data) > 2:
             addrlen = ord(data[1])
@@ -223,18 +224,18 @@ def parse_header(data):
                                                      addrlen])[0]
                 header_length = 4 + addrlen
             else:
-                logging.warn('header is too short')
+                logging.warning('header is too short')
         else:
-            logging.warn('header is too short')
+            logging.warning('header is too short')
     elif addrtype == ADDRTYPE_IPV6:
         if len(data) >= 19:
             dest_addr = socket.inet_ntop(socket.AF_INET6, data[1:17])
             dest_port = struct.unpack('>H', data[17:19])[0]
             header_length = 19
         else:
-            logging.warn('header is too short')
+            logging.warning('header is too short')
     else:
-        logging.warn('unsupported addrtype %d, maybe wrong password or '
+        logging.warning('unsupported addrtype %d, maybe wrong password or '
                      'encryption method' % addrtype)
     if dest_addr is None:
         return None
@@ -253,7 +254,7 @@ class IPNetwork(object):
         list(map(self.add_network, addrs))
 
     def add_network(self, addr):
-        if addr is "":
+        if addr == "":
             return
         block = addr.split('/')
         addr_family = is_ip(block[0])
@@ -265,12 +266,12 @@ class IPNetwork(object):
             ip = (hi << 64) | lo
         else:
             raise Exception("Not a valid CIDR notation: %s" % addr)
-        if len(block) is 1:
+        if len(block) == 1:
             prefix_size = 0
-            while (ip & 1) == 0 and ip is not 0:
+            while (ip & 1) == 0 and ip != 0:
                 ip >>= 1
                 prefix_size += 1
-            logging.warn("You did't specify CIDR routing prefix size for %s, "
+            logging.warning("You did't specify CIDR routing prefix size for %s, "
                          "implicit treated as %s/%d" % (addr, addr, addr_len))
         elif block[1].isdigit() and int(block[1]) <= addr_len:
             prefix_size = addr_len - int(block[1])
@@ -381,12 +382,12 @@ def test_inet_conv():
 
 def test_parse_header():
     assert parse_header(b'\x03\x0ewww.google.com\x00\x50') == \
-        (0, b'www.google.com', 80, 18)
+        (0, ADDRTYPE_HOST, b'www.google.com', 80, 18)
     assert parse_header(b'\x01\x08\x08\x08\x08\x00\x35') == \
-        (0, b'8.8.8.8', 53, 7)
+        (0, ADDRTYPE_IPV4, b'8.8.8.8', 53, 7)
     assert parse_header((b'\x04$\x04h\x00@\x05\x08\x05\x00\x00\x00\x00\x00'
                          b'\x00\x10\x11\x00\x50')) == \
-        (0, b'2404:6800:4005:805::1011', 80, 19)
+        (0, ADDRTYPE_IPV6, b'2404:6800:4005:805::1011', 80, 19)
 
 
 def test_pack_header():

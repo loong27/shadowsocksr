@@ -5,85 +5,85 @@ import re
 
 class miss:
     def ssr4(self,ssrurl):
-        missing_padding = 4 - len(ssrurl) % 4
+        missing_padding = (-len(ssrurl)) % 4
         if missing_padding:
-            ssrurl += b'='* missing_padding
-            return ssrurl
+            ssrurl += '=' * missing_padding
+        return ssrurl
 
 def checkip(ip):
     p = re.compile('^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$')
     if p.match(ip):
         return False
     else:
-        print "输入错误请重新输入"
+        print("输入错误请重新输入")
         return True
 
 def checkport(port):
     try:
         if int(port)<0 or int(port)>65535:
-            print "输入错误请重新输入"
+            print("输入错误请重新输入")
             return True
         return False
     except:
-        print "输入错误请重新输入"
+        print("输入错误请重新输入")
         return True
 
-print '''
+print('''
 请输入SSR地址码
 （就是ssr://XX,复制粘贴不嫌长您了就手打）
-手动配置服务器信息请输入1'''
+手动配置服务器信息请输入1''')
 
 error = True
 while error:
-    ssrhead = raw_input()
+    ssrhead = input()
     if ssrhead == "1":
         break
     try:
         ssrhead = re.split('[:/]',ssrhead)
         ssrurl = miss()
         ssrurl = ssrurl.ssr4(ssrhead[3])		
-        ssrurl = base64.urlsafe_b64decode(ssrurl)
+        ssrurl = base64.urlsafe_b64decode(ssrurl).decode('utf-8')
         ssrurl = re.split('[:/?&]',ssrurl)
         serverip = ssrurl[0]
         serverport = ssrurl[1]
         password = ssrurl[5]
         password = miss()
         password = password.ssr4(ssrurl[5])
-        password = base64.urlsafe_b64decode(password)
+        password = base64.urlsafe_b64decode(password).decode('utf-8')
         method = ssrurl[3]
         protocol = ssrurl[2]
         obfs = ssrurl[4]
         error = False
     except:
-        print "导入失败，请输入正确的SSR地址或输入1手动配置"
+        print("导入失败，请输入正确的SSR地址或输入1手动配置")
         error = True
 
 if ssrhead == "1":
     error = True
     while error:
-        serverip = raw_input("请输入服务器IP地址:\n")
+        serverip = input("请输入服务器IP地址:\n")
         error = checkip(serverip)
     error = True
     while error:
-        serverport = raw_input("请输入服务器端口:\n")
+        serverport = input("请输入服务器端口:\n")
         error = checkport(serverport)
     error = True
     while error:
-        print "请输入本机代理地址，默认127.0.0.1，使用默认请回车"
-        localaddress = raw_input()
+        print("请输入本机代理地址，默认127.0.0.1，使用默认请回车")
+        localaddress = input()
         if localaddress == "":
             localaddress = "127.0.0.1"
         error = checkip(localaddress)
     error = True
     while error:
-        print "请输入本机代理端口，默认1080，使用默认请回车"
-        localport = raw_input()
+        print("请输入本机代理端口，默认1080，使用默认请回车")
+        localport = input()
         if localport == "":
             localport = "1080"
         error = checkport(localport)
-    password = raw_input("请输入密码:\n")
+    password = input("请输入密码:\n")
 
-    print '''
+    print('''
 0="NONE不加密"
 1="table"
 2="rc4"
@@ -108,7 +108,7 @@ if ssrhead == "1":
 21="chacha20"
 22="chacha20-ietf"
 
-请输入对应的加密方式数字'''
+请输入对应的加密方式数字''')
     method = ["","table","rc4","rc4-md5","rc4-md5-6","aes-128-cfb"\
 ,"aes-192-cfb","aes-256-cfb","aes-128-ctr","aes-192-ctr","aes-256-ctr"\
 ,"bf-cfb","camellia-128-cfb","camellia-192-cfb","camellia-256-cfb"\
@@ -117,16 +117,16 @@ if ssrhead == "1":
     error = True
     while error:
         try:
-            num = input()
+            num = int(input())
             if num < 0:
                 num = "错误"
             method = method[num]
             error = False
         except:
-            print "输入错误，请输入正确的数字"
+            print("输入错误，请输入正确的数字")
             error = True
 
-    print '''
+    print('''
 1="origin"
 2="verify_simple"
 3="verify_sha1"
@@ -140,24 +140,24 @@ if ssrhead == "1":
 11="auth_chain_c"
 12="auth_chain_d"
     
-请输入对应的协议插件数字'''
+请输入对应的协议插件数字''')
     protocol = ["origin","verify_simple","verify_sha1","auth_sha1","auth_sha1_v2","auth_sha1_v4"\
 ,"auth_aes128_sha1","auth_aes128_md5","auth_chain_a","auth_chain_b","auth_chain_c","auth_chain_d"]
     error = True
     while error:
         try:
-            num = input()
+            num = int(input())
             if num < 1:
                 num = "错误"
             protocol = protocol[num-1]
             error = False
         except:
-            print "请输入正确的数字"
+            print("请输入正确的数字")
             error = True
 
-    protocolparam = raw_input("请输入协议参数，不使用参数请回车:\n")
+    protocolparam = input("请输入协议参数，不使用参数请回车:\n")
 
-    print '''
+    print('''
 1="plain"
 2="http_simple"
 3="http_post"
@@ -165,48 +165,48 @@ if ssrhead == "1":
 5="tls1.2_ticket_auth"
 6="tls1.2_ticket_fastauth"
     
-请输入对应的混淆参数的数字'''
+请输入对应的混淆参数的数字''')
     obfs = ["plain","http_simple","http_post","tls_simple"\
 ,"tls1.2_ticket_auth","tls1.2_ticket_fastauth"]
     error = True
     while error:
         try:
-            num = input()
+            num = int(input())
             if num < 1:
                 num = "错误"
             obfs = obfs[num-1]
             error = False
         except:
-            print "请输入正确的数字"
+            print("请输入正确的数字")
             error = True
 
-    print '''
+    print('''
 请输入混淆参数
 示例:baidu.com (不需要加http)
-不使用参数请回车'''
-    obfsparam = raw_input()
+不使用参数请回车''')
+    obfsparam = input()
 
 else:
     error = True
     while error:
-        print "请输入本机代理地址，默认127.0.0.1，使用默认请回车"
-        localaddress = raw_input()
+        print("请输入本机代理地址，默认127.0.0.1，使用默认请回车")
+        localaddress = input()
         if localaddress == "":
             localaddress = "127.0.0.1"
         error = checkip(localaddress)
     error = True
     while error:
-        print "请输入本机代理端口，默认1080，使用默认请回车"
-        localport = raw_input()
+        print("请输入本机代理端口，默认1080，使用默认请回车")
+        localport = input()
         if localport == "":
             localport = "1080"
         error = checkport(localport)
-    protocolparam = raw_input("请输入协议参数，不使用参数请回车:\n")
-    print '''
+    protocolparam = input("请输入协议参数，不使用参数请回车:\n")
+    print('''
 请输入混淆参数
 示例:baidu.com (不需要加http)
-不使用参数请回车'''
-    obfsparam = raw_input()
+不使用参数请回车''')
+    obfsparam = input()
 
 user='''{
     "server": "%s",
@@ -235,6 +235,6 @@ user='''{
 '''%(serverip,serverport,localaddress,localport,\
 password,method,protocol,protocolparam,obfs,obfsparam)
 with open('user-config.json','w') as f:
-	f.write(user.encode("utf-8"))
-print user+"\n"+"请检查输入是否有误，若需要修改请重新执行程序。\
-\n启动ssr请在终端切换至shadowsocksr/shadowsocks目录执行python local.py -d start"
+	f.write(user)
+print(user+"\n"+"请检查输入是否有误，若需要修改请重新执行程序。\
+\n启动ssr请在终端切换至shadowsocksr/shadowsocks目录执行python local.py -d start")

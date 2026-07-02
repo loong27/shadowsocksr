@@ -57,7 +57,10 @@ def find_library(possible_lib_names, search_symbol, library_name):
         if os.name == "nt":
             paths.extend(find_library_nt(name))
         else:
-            path = ctypes.util.find_library(name)
+            try:
+                path = ctypes.util.find_library(name)
+            except (OSError, IOError):
+                path = None
             if path:
                 paths.append(path)
 
@@ -85,7 +88,7 @@ def find_library(possible_lib_names, search_symbol, library_name):
                 logging.info('loading %s from %s', library_name, path)
                 return lib
             else:
-                logging.warn('can\'t find symbol %s in %s', search_symbol,
+                logging.warning('can\'t find symbol %s in %s', search_symbol,
                              path)
         except Exception:
             if path == paths[-1]:

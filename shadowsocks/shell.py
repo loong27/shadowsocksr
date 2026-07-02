@@ -106,7 +106,7 @@ def check_config(config, is_local):
     if 'server_port' in config and type(config['server_port']) != list:
         config['server_port'] = int(config['server_port'])
 
-    if config.get('local_address', '') in [b'0.0.0.0']:
+    if config.get('local_address', '') in ['0.0.0.0', b'0.0.0.0']:
         logging.warning('warning: local set to listen on 0.0.0.0, it\'s not safe')
     if config.get('server', '') in ['127.0.0.1', 'localhost']:
         logging.warning('warning: server set to listen on %s:%s, are you sure?' %
@@ -117,7 +117,7 @@ def check_config(config, is_local):
     if config.get('timeout', 300) > 600:
         logging.warning('warning: your timeout %d seems too long' %
                      int(config.get('timeout')))
-    if config.get('password') in [b'mypassword']:
+    if config.get('password') in ['mypassword', b'mypassword']:
         logging.error('DON\'T USE DEFAULT PASSWORD! Please change it in your '
                       'config.json!')
         sys.exit(1)
@@ -376,7 +376,7 @@ Online help: <https://github.com/shadowsocks/shadowsocks>
 def _decode_list(data):
     rv = []
     for item in data:
-        if hasattr(item, 'encode'):
+        if bytes == str and hasattr(item, 'encode'):
             item = item.encode('utf-8')
         elif isinstance(item, list):
             item = _decode_list(item)
@@ -389,7 +389,7 @@ def _decode_list(data):
 def _decode_dict(data):
     rv = {}
     for key, value in data.items():
-        if hasattr(value, 'encode'):
+        if bytes == str and hasattr(value, 'encode'):
             value = value.encode('utf-8')
         elif isinstance(value, list):
             value = _decode_list(value)
