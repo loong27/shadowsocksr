@@ -23,7 +23,7 @@ import hashlib
 import logging
 
 from shadowsocks import common
-from shadowsocks.crypto import rc4_md5, openssl, sodium, table
+from shadowsocks.crypto import rc4_md5, openssl, sodium, table, aead
 
 
 method_supported = {}
@@ -31,6 +31,7 @@ method_supported.update(rc4_md5.ciphers)
 method_supported.update(openssl.ciphers)
 method_supported.update(sodium.ciphers)
 method_supported.update(table.ciphers)
+method_supported.update(aead.ciphers)
 
 
 def random_string(length):
@@ -154,6 +155,11 @@ def encrypt_all(password, method, op, data):
         key, _ = EVP_BytesToKey(password, key_len, iv_len)
     else:
         key = password
+    if aead.is_aead_cipher(method):
+        if op:
+            iv = random_string(iv_len)
+            return aead.encrypt_packet(method, key, iv, data)
+        return aead.decrypt_packet(method, key, data)[0]
     if op:
         iv = random_string(iv_len)
         result.append(iv)
@@ -187,6 +193,13 @@ def encrypt_all_iv(key, method, op, data, ref_iv):
     result = []
     method = method.lower()
     (key_len, iv_len, m) = method_supported[method]
+    if aead.is_aead_cipher(method):
+        if op:
+            iv = ref_iv[0]
+            return aead.encrypt_packet(method, key, iv, data)
+        plain, iv = aead.decrypt_packet(method, key, data)
+        ref_iv[0] = iv
+        return plain
     if op:
         iv = ref_iv[0]
         result.append(iv)
@@ -206,6 +219,8 @@ CIPHERS_TO_TEST = [
     'salsa20',
     'chacha20',
     'table',
+    'aes-128-gcm',
+    'aes-256-gcm',
 ]
 
 
