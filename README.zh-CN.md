@@ -3,12 +3,14 @@ ShadowsocksR
 
 [![Build Status]][Travis CI]
 
-A fast tunnel proxy that helps you bypass firewalls.
+一个快速隧道代理，帮助你穿越防火墙。
 
-Server
+> 本仓库已全面兼容 Python 3（同时保留对 Python 2 的回退支持）。
+
+服务端
 ------
 
-### Install
+### 安装
 
 Debian / Ubuntu:
 
@@ -24,53 +26,52 @@ Windows:
 
     git clone git@github.com:loong27/shadowsocksr.git
 
-### Usage for single user on linux platform
+### Linux 单用户使用方式
 
-If you clone it into "~/shadowsocksr"  
-move to "~/shadowsocksr", then run:
+如果克隆到 `~/shadowsocksr` 目录：
+进入 `~/shadowsocksr`，运行：
 
     bash initcfg.sh
 
-move to "~/shadowsocksr/shadowsocks", then run:
+进入 `~/shadowsocksr/shadowsocks`，运行：
 
     python server.py -p 443 -k password -m aes-128-cfb -O auth_aes128_md5 -o tls1.2_ticket_auth_compatible
 
-Check all the options via `-h`.
+通过 `-h` 查看所有选项。
 
-You can also use a configuration file instead (recommend), move to "~/shadowsocksr" and edit the file "user-config.json", then move to "~/shadowsocksr/shadowsocks" again, just run:
+推荐使用配置文件：回到 `~/shadowsocksr` 编辑 `user-config.json`，再进入 `~/shadowsocksr/shadowsocks`，运行：
 
     python server.py
 
-To run in the background:
+后台运行：
 
     ./logrun.sh
 
-To stop:
+停止服务：
 
     ./stop.sh
 
-To monitor the log:
+查看日志：
 
     ./tail.sh
 
 
-Client
+客户端
 ------
 
 * [Windows] / [macOS]
 * [Android] / [iOS]
 * [OpenWRT]
 
-Use GUI clients on your local PC/phones. Check the README of your client
-for more information.
+在本地 PC 或手机上使用图形化客户端。详细使用方式请查阅对应客户端的 README。
 
-Documentation
--------------
+文档
+----
 
-You can find all the documentation in the [Wiki].
+所有文档均可在 [Wiki] 中查阅。
 
-License
--------
+许可证
+------
 
 Copyright 2015 clowwindy
 
@@ -86,8 +87,8 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License.
 
-Bugs and Issues
-----------------
+Bug 与问题反馈
+--------------
 
 * [Issue Tracker]
 
@@ -97,7 +98,7 @@ Bugs and Issues
 [Build Status]:      https://travis-ci.org/shadowsocksr/shadowsocksr.svg?branch=manyuser
 [Debian sid]:        https://packages.debian.org/unstable/python/shadowsocks
 [iOS]:               https://github.com/shadowsocks/shadowsocks-iOS/wiki/Help
-[Issue Tracker]:     https://github.com/shadowsocksr/shadowsocksr/issues?state=open
+[Issue Tracker]:     https://github.com/loong27/shadowsocksr/issues?state=open
 [OpenWRT]:           https://github.com/shadowsocks/openwrt-shadowsocks
 [macOS]:             https://github.com/shadowsocksr/ShadowsocksX-NG
 [Travis CI]:         https://travis-ci.org/shadowsocksr/shadowsocksr
